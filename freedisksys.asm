@@ -1,13 +1,37 @@
-; F/OSS FDS BIOS
+; FreeDiskSysROM
+; Copyright (c) 2018 James Athey
+;
+; This program is free software: you can redistribute it and/or modify it under
+; the terms of the GNU Lesser General Public License version 3 as published by
+; the Free Software Foundation.
+;
+; This program is distributed in the hope that it will be useful, but WITHOUT
+; ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+; FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+; details.
+;
+; You should have received a copy of the GNU Lesser General Public License
+; along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 ; zero-page registers
-; [$FF]:  value last written to $2000   $80 on reset.
-; [$FE]:  value last written to $2001   $06 on reset
-; [$FD]:  value last written to $2005/1 $00 on reset.
-; [$FC]:  value last written to $2005/2 $00 on reset.
+ZP_PPUCTRL		EQU $FF; value last written to $2000   $80 on reset.
+ZP_PPUMASK		EQU $FE; value last written to $2001   $06 on reset
+ZP_PPUSCROLL1	EQU $FD; value last written to $2005/1 $00 on reset.
+ZP_PPUSCROLL2	EQU $FC; value last written to $2005/2 $00 on reset.
 ; [$FB]:  value last written to $4016   $00 on reset.
 ; [$FA]:  value last written to $4025   $2E on reset.
 ; [$F9]:  value last written to $4026   $FF on reset.
+
+; PPU registers
+PPUCTRL		EQU $2000
+PPUMASK		EQU $2001
+PPUSTATUS	EQU $2002
+OAMADDR		EQU $2003
+OAMDATA		EQU $2004
+PPUSCROLL	EQU $2005
+PPUADDR		EQU $2006
+PPUDATA		EQU $2007
+OAMDMA		EQU $4014
 
 ; Error codes:
 OK EQU $00 ; no error
@@ -35,45 +59,107 @@ DISK_FULL EQU $30 ; disk trouble, ($4032.1) disk is full
 ORG $E000
 
 ; Fritters away 131 cycles. (NesDev Wiki says 132 cycles, but there's no way
-; to waste that amount in just 10 bytes of instructions.)
+; to waste that amount in just 10 bytes of instructions without clobbering
+; something.)
 PAD $e149,$72
 Delay131:
-	RTS
+	CLC ; 1 byte, 2 cycles
+	PHA ; 1 byte, 3 cycles
+	LDA #$E9 ; 2 bytes, 2 cycles
+	; now waste 114 cycles
+	@loop:
+		ADC #1 ; 2 bytes, 2 cycles
+		BCC @loop ; 2 bytes, 3 cycles except for last time when it's 2
+	PLA ; 1 byte, 4 cycles
+	RTS ; 1 byte, 6 cycles
 
 ; Delays roughly Y ms, affects X, Y
+; If y == 0, then delay 256 ms
 PAD $e153,$72
 Delayms:
-	RTS
+	; Every cycle is 1/1789.7725 ms. Each iteration of the outer loop spins 1790 cycles to delay 1 ms
+	LDX #255 ; 2 bytes, 2 cycles
+	; first inner loop burns 1274 cycles
+	@inner1:
+		DEX ; 1 byte, 2 cycles
+		BNE @inner1 ; 2 bytes, 3 cycles except for the last time when it's 2
+	LDX #102 ; 2 bytes, 2 cycles
+	; second inner loop burns 509 cycles (ideal would be 507)
+	@inner2:
+		DEX ; 1 byte, 2 cycles
+		BNE @inner2 ; 2 bytes, 3 cycles except for the last time when it's 2
+	DEY ; 1 byte, 2 cycles
+	BNE Delayms ; 2 bytes, 3 cycles except for the last time when it's 2
+	RTS ; 1 byte, 6 cycles
 
 ; Disable sprites and playfield, affects A, $FE
 PAD $e161,$72
 DisPFObj:
+	; Get the existing value
+	LDA ZP_PPUMASK
+	; clear bits 3 and 4
+	AND #%11100111
+WritePPUMask:
+	; Write it to RAM
+	STA ZP_PPUMASK
+	; Write it to PPUMASK
+	STA PPUMASK
 	RTS
 
 ; Enable sprites and playfield, affects A, $FE
 PAD $e16b,$72
 EnPFObj:
-	RTS
+	; Get the existing value
+	LDA ZP_PPUMASK
+	; set bits 3 and 4
+	ORA #%00011000
+	; re-use DisPFObj's implementation of writing the registers to save bytes
+	; only six bytes allowed in this function, and JMP would make it 7.
+	; use BNE to jump backwards because Z is guaranteed to be 0 (from the
+	; non-zero ORA immediate) and that's only 2 bytes
+	BNE WritePPUMask
 	
 ; Disable sprites, affects A, $FE
 PAD $e171,$72
 DisObj:
-	RTS
+	; Get the existing value
+	LDA ZP_PPUMASK
+	; clear bit 4
+	AND #%11101111
+	; Can't trust BNE like EnPFObj, because the result of the preceding AND
+	; could be 0. However, we have 7 bytes to play with, so JMP works fine.
+	JMP WritePPUMask
 
 ; Enable sprites, affects A, $FE
 PAD $e178,$72
 EnObj:
-	RTS
+	; Get the existing value
+	LDA ZP_PPUMASK
+	; set bit 4
+	ORA #%00010000
+	; Branch to DisPFObj's implementation of writing the result to save bytes
+	BNE WritePPUMask
 
 ; Disable playfield, affects A, $FE
 PAD $e17e,$72
 DisPF:
-	RTS
+	; Get the existing value
+	LDA ZP_PPUMASK
+	; clear bit 3
+	AND #%11110111
+	; Can't trust BNE like EnPFObj, because the result of the preceding AND
+	; could be 0. However, we have 7 bytes to play with, so JMP works fine.
+	JMP WritePPUMask
 
 ; Enable playfield, affects A, $FE
 PAD $e185,$72
 EnPF:
-	RTS
+	; Get the existing value
+	LDA ZP_PPUMASK
+	; set bit 3
+	ORA #%00001000
+	; Branch to DisPFObj's implementation of writing the result to save bytes
+	BNE WritePPUMask
 
 ; Wait until next VBlank NMI fires, and return (for programs that do it the
 ; "everything in main" way). NMI vector selection at $100 is preserved, but
