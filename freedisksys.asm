@@ -162,9 +162,10 @@ EnPF:
 	BNE WritePPUMask
 
 ; Wait until next VBlank NMI fires, and return (for programs that do it the
-; "everything in main" way). NMI vector selection at $100 is preserved, but
-; further VBlanks are disabled. Affects $FF
+; "everything in main" way). NMI vector selection at $100 is saved to the
+; stack, but further VBlanks are disabled. Affects $FF
 PAD $e1b2,$72
+; 70 bytes to work with
 VINTWait:
 	RTS
 
@@ -414,6 +415,10 @@ Random:
 ; Affects: A
 PAD $e9c8,$72
 SpriteDMA:
+	LDA #0
+	STA OAMADDR
+	LDA #$02
+	STA OAMDMA
 	RTS
 
 ; Decrement several counters in Zeropage. The first counter is a decimal
@@ -424,7 +429,28 @@ SpriteDMA:
 ; Affects: A, X, $00
 PAD $e9d3,$72
 CounterLogic:
-	RTS
+	STX $00 ; 2 bytes
+	DEC 0,X ; 2 bytes
+	; if negative, set the first counter to 9, otherwise continue
+	BPL @countersToA ; 2 bytes
+	LDA #$09 ; 2 bytes
+	STA 0,X ; 2 bytes
+	; Do the A+1...Y counters now, since we know that the first counter rolled over
+@countersAplus1toY:
+	; there's no zp,y addressing mode, only zp,x so copy Y to X through A
+	TYA ; 1 byte
+@countersToA:
+	TAX ; 1 byte
+@loop:
+	LDA 0,X ; 2 bytes
+	; skip counters that are already 0
+	BEQ @looptest ; 2 bytes
+	DEC 0,X ; 2 bytes
+@looptest:
+	DEX ; 1 byte
+	CPX $00 ; 2 bytes
+	BNE @loop ; 2 bytes
+	RTS ; 1 byte
 
 ; Read hard-wired Famicom joypads.
 ; Returns: $f5 = Joypad #1 data, $f6 = Joypad #2 data
@@ -492,7 +518,8 @@ PAD $ead2,$72
 MemFill:
 	RTS
 
-; This routine set scroll registers according to values in $fc, $fd and $ff. Should typically be called in VBlank after VRAM updates
+; This routine set scroll registers according to values in $fc, $fd and $ff.
+; Should typically be called in VBlank after VRAM updates
 ; Parameters: $FC, $FD, $FF
 ; Affects: A
 PAD $eaea,$72
