@@ -33,6 +33,10 @@ PPUADDR		EQU $2006
 PPUDATA		EQU $2007
 OAMDMA		EQU $4014
 
+; Input registers
+JOYPAD1 EQU $4016
+JOYPAD2 EQU $4017
+
 ; Error codes:
 OK EQU $00 ; no error
 DISK_NOT_SET EQU $01 ; disk set, ($4032.0) disk not set
@@ -56,12 +60,24 @@ EOF_READ EQU $28 ; disk trouble, ($4030.6) file ends prematurely during read
 EOF_WRITE EQU $29 ; disk trouble, ($4030.6) file ends prematurely during write
 DISK_FULL EQU $30 ; disk trouble, ($4032.1) disk is full
 
+MACRO API_ENTRYPOINT address
+	IF $ > #address
+		ERROR "Previous function overflowed into following public API"
+	ELSE
+		PAD #address
+	ENDIF
+ENDM
+
+; Fill with a KIL opcode, so we die immediately if we jump into crazytown
+FILLVALUE $72
+
+; Start assembling at the beginning of the FDS ROM area
 ORG $E000
 
 ; Fritters away 131 cycles. (NesDev Wiki says 132 cycles, but there's no way
 ; to waste that amount in just 10 bytes of instructions without clobbering
 ; something.)
-PAD $e149,$72
+API_ENTRYPOINT $e149
 Delay131:
 	CLC ; 1 byte, 2 cycles
 	PHA ; 1 byte, 3 cycles
@@ -75,7 +91,7 @@ Delay131:
 
 ; Delays roughly Y ms, affects X, Y
 ; If y == 0, then delay 256 ms
-PAD $e153,$72
+API_ENTRYPOINT $e153
 Delayms:
 	; Every cycle is 1/1789.7725 ms. Each iteration of the outer loop spins 1790 cycles to delay 1 ms
 	LDX #255 ; 2 bytes, 2 cycles
@@ -93,7 +109,7 @@ Delayms:
 	RTS ; 1 byte, 6 cycles
 
 ; Disable sprites and playfield, affects A, $FE
-PAD $e161,$72
+API_ENTRYPOINT $e161
 DisPFObj:
 	; Get the existing value
 	LDA ZP_PPUMASK
@@ -107,7 +123,7 @@ WritePPUMask:
 	RTS
 
 ; Enable sprites and playfield, affects A, $FE
-PAD $e16b,$72
+API_ENTRYPOINT $e16b
 EnPFObj:
 	; Get the existing value
 	LDA ZP_PPUMASK
@@ -120,7 +136,7 @@ EnPFObj:
 	BNE WritePPUMask
 	
 ; Disable sprites, affects A, $FE
-PAD $e171,$72
+API_ENTRYPOINT $e171
 DisObj:
 	; Get the existing value
 	LDA ZP_PPUMASK
@@ -131,7 +147,7 @@ DisObj:
 	JMP WritePPUMask
 
 ; Enable sprites, affects A, $FE
-PAD $e178,$72
+API_ENTRYPOINT $e178
 EnObj:
 	; Get the existing value
 	LDA ZP_PPUMASK
@@ -141,7 +157,7 @@ EnObj:
 	BNE WritePPUMask
 
 ; Disable playfield, affects A, $FE
-PAD $e17e,$72
+API_ENTRYPOINT $e17e
 DisPF:
 	; Get the existing value
 	LDA ZP_PPUMASK
@@ -152,7 +168,7 @@ DisPF:
 	JMP WritePPUMask
 
 ; Enable playfield, affects A, $FE
-PAD $e185,$72
+API_ENTRYPOINT $e185
 EnPF:
 	; Get the existing value
 	LDA ZP_PPUMASK
@@ -164,7 +180,7 @@ EnPF:
 ; Wait until next VBlank NMI fires, and return (for programs that do it the
 ; "everything in main" way). NMI vector selection at $100 is saved to the
 ; stack, but further VBlanks are disabled. Affects $FF
-PAD $e1b2,$72
+API_ENTRYPOINT $e1b2
 ; 70 bytes to work with
 VINTWait:
 	RTS
@@ -173,7 +189,7 @@ VINTWait:
 ; decided by the file's header.
 ; Parameters: Pointer to Disk ID, Pointer to File List
 ; Returns: A = error #, Y = # of files loaded
-PAD $e1f8,$72
+API_ENTRYPOINT $e1f8
 LoadFiles:
 	RTS
 
@@ -184,7 +200,7 @@ LoadFiles:
 ; written file).
 ; Parameters: Pointer to Disk ID, Pointer to File Header
 ; Returns: A = error #
-PAD $e237,$72
+API_ENTRYPOINT $e237
 AppendFile:
 	RTS
 
@@ -195,7 +211,7 @@ AppendFile:
 ; the written one.
 ; Parameters: Pointer to Disk ID, Pointer to File Header, A = file #
 ; Returns: A = error #
-PAD $e239,$72
+API_ENTRYPOINT $e239
 WriteFile:
 	RTS
 
@@ -203,7 +219,7 @@ WriteFile:
 ; to A.
 ; Parameters: Pointer to Disk ID, A = # to set file count to
 ; Returns: A = error #
-PAD $e2b7,$72
+API_ENTRYPOINT $e2b7
 CheckFileCount:
 	RTS
 
@@ -211,28 +227,28 @@ CheckFileCount:
 ; back.
 ; Parameters: Pointer to Disk ID, A = number to reduce current file count by
 ; Returns: A = error #
-PAD $e2bb,$72
+API_ENTRYPOINT $e2bb
 AdjustFileCount:
 	RTS
 
 ; Set the file count to A + 1
 ; Parameters: Pointer to Disk ID, A = file count minus one = # of the last file
 ; Returns: A = error #
-PAD $e301,$72
+API_ENTRYPOINT $e301
 SetFileCount1:
 	RTS
 
 ; Set the file count to A
 ; Parameters: Pointer to Disk ID, A = file count
 ; Returns: A = error #
-PAD $e305,$72
+API_ENTRYPOINT $e305
 SetFileCount:
 	RTS
 
 ; Fills provided DiskInfo structure with data read off the current disk.
 ; Parameters: Pointer to Disk Info
 ; Returns: A = error #
-PAD $e32a,$72
+API_ENTRYPOINT $e32a
 GetDiskInfo:
 	RTS
 
@@ -241,18 +257,18 @@ GetDiskInfo:
 ; placed in the equivelant place in the compare string. Otherwise, if the
 ; comparison fails, an appropriate error will be generated.
 ; Parameters: Pointer to 10 byte string at $00
-PAD $e445,$72
+API_ENTRYPOINT $e445
 CheckDiskHeader:
 	RTS
 
 ; Reads number of files stored on disk, stores the result in $06
-PAD $e484,$72
+API_ENTRYPOINT $e484
 GetNumFiles:
 	RTS
 
 ; Writes new number of files to disk header.
 ; Parameters: A = number of files
-PAD $e492,$72
+API_ENTRYPOINT $e492
 SetNumFiles:
 	RTS
 
@@ -263,13 +279,13 @@ SetNumFiles:
 ; the first byte in the string is -1, the BootID number is used for matching
 ; files (any FileID that is not greater than the BootID qualifies as a match).
 ; Parameters: Pointer to FileID list at $02
-PAD $e4a0,$72
+API_ENTRYPOINT $e4a0
 FileMatchTest:
 	RTS
 
 ; Skips over specified number of files.
 ; Parameters: Number of files to skip in $06
-PAD $e4da,$72
+API_ENTRYPOINT $e4da
 SkipFiles:
 	RTS
 
@@ -325,7 +341,7 @@ SkipFiles:
 ; VRAM.
 ; Affects: A, X, Y, $00, $01, $ff
 ; Parameters: Pointer to VRAM buffer to be written
-PAD $e7bb,$72
+API_ENTRYPOINT $e7bb
 VRAMStructWrite:
 	RTS
 
@@ -334,20 +350,20 @@ VRAMStructWrite:
 ; above)), save the pointer at ($00) and fix the return address.
 ; Affects: A, X, Y, $05, $06
 ; Returns: $00, $01 = pointer fetched
-PAD $e844,$72
+API_ENTRYPOINT $e844
 FetchDirectPtr:
 	RTS
 
 ; Write the VRAM Buffer at $302 to VRAM.
 ; Affects: A, X, Y, $301, $302
-PAD $e86a,$72
+API_ENTRYPOINT $e86a
 WriteVRAMBuffer:
 	RTS
 
 ; Read individual bytes from VRAM to the VRAMBuffer. 
 ; Affects A, X, Y
 ; X = start address of read buffer, Y = # of bytes to read
-PAD $e8b3,$72
+API_ENTRYPOINT $e8b3
 ReadVRAMBuffer:
 	RTS
 
@@ -355,7 +371,7 @@ ReadVRAMBuffer:
 ; Parameters: A = High VRAM address, X = Low VRAM address, Y = string length, Direct Pointer = data to be written to VRAM
 ; Returns: A = $ff : no error, A = $01 : string didn't fit in buffer
 ; Affects: A, X, Y, $00, $01, $02, $03, $04, $05, $06
-PAD $e8d2,$72
+API_ENTRYPOINT $e8d2
 PrepareVRAMString:
 	RTS
 
@@ -365,7 +381,7 @@ PrepareVRAMString:
 ; Parameters: A = High VRAM address, X = Low VRAM address, Direct pointer = data to be written to VRAM
 ; Returns: A = $ff : no error, A = $01 : data didn't fit in buffer
 ; Affects: A, X, Y, $00, $01, $02, $03, $04, $05, $06
-PAD $e8e1,$72
+API_ENTRYPOINT $e8e1
 PrepareVRAMStrings:
 	RTS
 
@@ -378,7 +394,7 @@ PrepareVRAMStrings:
 ; Parameters: X = starting index of read buffer, Y = # of address to compare (starting at 1), $00, $01 = address to read from
 ; Returns: carry clear : a previously read byte was returned, carry set : no byte was read, should wait next call to ReadVRAMBuffer
 ; Affects: A, X, Y
-PAD $e94f,$72
+API_ENTRYPOINT $e94f
 GetVRAMBufferByte:
 	RTS
 
@@ -387,7 +403,7 @@ GetVRAMBufferByte:
 ; Parameters: $02 = Pixel X cord, $03 = Pixel Y cord
 ; Returns: $00 = High nametable address, $01 = Low nametable address
 ; Affects: A
-PAD $e97d,$72
+API_ENTRYPOINT $e97d
 Pixel2NamConv:
 	RTS
 
@@ -396,7 +412,7 @@ Pixel2NamConv:
 ; Parameters: $00 = High nametable address, $01 = low nametable address
 ; Returns: $02 = Pixel X cord, $03 = Pixel Y cord
 ; Affects: A
-PAD $e997,$72
+API_ENTRYPOINT $e997
 Nam2PixelConv:
 	RTS
 
@@ -407,13 +423,13 @@ Nam2PixelConv:
 ; routine will shift the bytes right.
 ; Parameters: X = Zero Page address where the random bytes are placed, Y = # of shift register bytes (normally $02)
 ; Affects: A, X, Y, $00
-PAD $e9b1,$72
+API_ENTRYPOINT $e9b1
 Random:
 	RTS
 
 ; Run Sprite DMA from RAM $200-$2FF
 ; Affects: A
-PAD $e9c8,$72
+API_ENTRYPOINT $e9c8
 SpriteDMA:
 	LDA #0
 	STA OAMADDR
@@ -427,7 +443,7 @@ SpriteDMA:
 ; counter does a 0 -> 9 transition, and stays at 0.
 ; Parameters: A, Y = end Zeropage address of counters, X = start zeropage address of counters
 ; Affects: A, X, $00
-PAD $e9d3,$72
+API_ENTRYPOINT $e9d3
 CounterLogic:
 	STX $00 ; 2 bytes
 	DEC 0,X ; 2 bytes
@@ -454,23 +470,80 @@ CounterLogic:
 
 ; Read hard-wired Famicom joypads.
 ; Returns: $f5 = Joypad #1 data, $f6 = Joypad #2 data
-; Affects: A, X, $00, $01
-PAD $e9eb,$72
+; Affects: A
+; The original affected A, X, $00, $01, but this version uses the ring counter
+; method described at http://wiki.nesdev.com/w/index.php/Controller_Reading,
+; which is both shorter and clobbers fewer registers
+API_ENTRYPOINT $e9eb
 ReadPads:
+	; At the same time that we strobe bit 0, we initialize the ring counter
+	; so we're hitting two birds with one stone here
+	LDA #$01
+	; While the strobe bit is set, buttons will be continuously reloaded.
+	; This means that reading from JOYPAD1 will only return the state of the
+	; first button: button A.
+	STA JOYPAD1
+	STA $F5
+	LSR A ; now A is 0
+	; By storing 0 into JOYPAD1, the strobe bit is cleared and the reloading stops.
+	; This allows all 8 buttons (newly reloaded) to be read from JOYPAD1.
+	STA JOYPAD1
+@loop:
+	LDA JOYPAD1
+	; only get the controller state
+	AND #1
+	; set carry iff A != 0
+	CMP #1
+	ROL $F5 ; Carry -> bit0; bit 7 -> Carry
+	LDA JOYPAD2
+	; only get the controller state
+	AND #1
+	; set carry iff A != 0
+	CMP #1
+	ROL $F6 ; Carry -> bit0; bit 7 -> Carry
+	BCC @loop
+	RTS
+
+DetectUpToDownTransitions:
+	; load current joypad1 state
+	LDA $F5
+	; save joypad1 state to temporary
+	STA $00
+	; EOR between previous and current state says which buttons have changed
+	EOR $F7
+	; AND of that with current state says which buttons have changed to down
+	AND $00
+	; save up-down transitions
+	STA $F5
+	; overwrite previous state with current state via temporary
+	LDA $00
+	STA $F7
+
+	; repeat for joypad 2
+	LDA $F6
+	STA $01
+	EOR $F8
+	AND $01
+	STA $F6
+	LDA $01
+	STA $F8
+
 	RTS
 
 ; Read hard-wired Famicom joypads, and detect up->down button transitions
 ; Returns: $f5 = Joypad #1 up->down transitions, $f6 = Joypad #2 up->down transitions $f7 = Joypad #1 data, $f8 = Joypad #2 data
 ; Affects: A, X, $00, $01
-PAD $ea1a,$72
+API_ENTRYPOINT $ea1a
 ReadDownPads:
+	JSR ReadPads
+	JSR DetectUpToDownTransitions
 	RTS
 
 ; Read both hard-wired Famicom and expansion port joypads, and detect up->down
 ; button transitions.
 ; Returns: $f5 = Joypad #1 up->down transitions, $f6 = Joypad #2 up->down transitions $f7 = Joypad #1 data, $f8 = Joypad #2 data
 ; Affects: A, X, $00, $01
-PAD $ea1f,$72
+API_ENTRYPOINT $ea1f
 ReadOrDownPads:
 	RTS
 
@@ -479,7 +552,7 @@ ReadOrDownPads:
 ; glitches.
 ; Returns: $f5 = Joypad #1 up->down transitions, $f6 = Joypad #2 up->down transitions $f7 = Joypad #1 data, $f8 = Joypad #2 data
 ; Affects: A, X, $00, $01
-PAD $ea36,$72
+API_ENTRYPOINT $ea36
 ReadDownVerifyPads:
 	RTS
 
@@ -488,7 +561,7 @@ ReadDownVerifyPads:
 ; around the DMC reading glitches.
 ; Returns: $f5 = Joypad #1 up->down transitions, $f6 = Joypad #2 up->down transitions $f7 = Joypad #1 data, $f8 = Joypad #2 data
 ; Affects: A, X, $00, $01
-PAD $ea4c,$72
+API_ENTRYPOINT $ea4c
 ReadOrDownVerifyPads:
 	RTS
 
@@ -497,7 +570,7 @@ ReadOrDownVerifyPads:
 ; routine is NOT DMC fortified.
 ; Returns: $f1-$f4 = up->down transitions, $f5-$f8 = Joypad data in the order : Pad1, Pad2, Expansion1, Expansion2
 ; Affects: A, X, $00, $01
-PAD $ea68,$72
+API_ENTRYPOINT $ea68
 ReadDownExpPads:
 	RTS
 
@@ -507,14 +580,14 @@ ReadDownExpPads:
 ; attribute table with the value in Y.
 ; Parameters: A = High VRAM Address (aka tile row #), X = Fill value, Y = # of tile rows OR attribute fill data
 ; Affects: A, X, Y, $00, $01, $02
-PAD $ea84,$72
+API_ENTRYPOINT $ea84
 VRAMFill:
 	RTS
 
 ; Fill RAM pages with specified value.
 ; Parameters: A = fill value, X = first page #, Y = last page #
 ; Affects: A, X, Y, $00, $01
-PAD $ead2,$72
+API_ENTRYPOINT $ead2
 MemFill:
 	RTS
 
@@ -522,7 +595,7 @@ MemFill:
 ; Should typically be called in VBlank after VRAM updates
 ; Parameters: $FC, $FD, $FF
 ; Affects: A
-PAD $eaea,$72
+API_ENTRYPOINT $eaea
 SetScroll:
 	RTS
 
@@ -531,12 +604,12 @@ SetScroll:
 ; to, return address on stack is used to get jump table entries.
 ; Parameters: A = Jump table entry
 ; Affects: A, X, Y, $00, $01
-PAD $eafd,$72
+API_ENTRYPOINT $eafd
 JumpEngine:
 	RTS
 
 ; Read Family Basic Keyboard expansion
-PAD $eb13,$72
+API_ENTRYPOINT $eb13
 ReadKeyboard:
 	RTS
 
@@ -565,12 +638,12 @@ ReadKeyboard:
 ; non "data" bitplanes are replaced by dummy reads.
 ; Parameters: A = Low VRAM Address & Flags, Y = Hi VRAM Address, X = # of tiles to transfer to/from VRAM
 ; Affects: A, X, Y, $00, $01, $02, $03, $04
-PAD $eb66,$72
+API_ENTRYPOINT $eb66
 LoadTileset:
 	RTS
 
 ; Some kind of logic that some games use. (detail is under analysis)
-PAD $ec22,$72
+API_ENTRYPOINT $ec22
 unk_EC22:
 	RTS
 
@@ -598,7 +671,7 @@ RESET:
 IRQ:
 	JMP ($DFFE) ; game's IRQ vector
 
-PAD $fffa,$72
+API_ENTRYPOINT $fffa
 NMI_VEC:
 
 RESET_VEC:
