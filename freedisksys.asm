@@ -134,7 +134,7 @@ EnPFObj:
 	; use BNE to jump backwards because Z is guaranteed to be 0 (from the
 	; non-zero ORA immediate) and that's only 2 bytes
 	BNE WritePPUMask
-	
+
 ; Disable sprites, affects A, $FE
 API_ENTRYPOINT $e171
 DisObj:
@@ -252,6 +252,18 @@ API_ENTRYPOINT $e32a
 GetDiskInfo:
 	RTS
 
+API_ENTRYPOINT $e3da
+AddYtoPtr0A:
+	RTS
+
+API_ENTRYPOINT $e3e7
+GetHCPwNWPchk:
+	RTS
+
+API_ENTRYPOINT $e3ea
+GetHCPwWPchk:
+	RTS
+
 ; Compares the first 10 bytes on the disk coming after the FDS string, to 10
 ; bytes pointed to by Ptr($00). To bypass the checking of any byte, a -1 can be
 ; placed in the equivelant place in the compare string. Otherwise, if the
@@ -287,6 +299,46 @@ FileMatchTest:
 ; Parameters: Number of files to skip in $06
 API_ENTRYPOINT $e4da
 SkipFiles:
+	RTS
+
+API_ENTRYPOINT $e4f9
+LoadData:
+	RTS
+
+API_ENTRYPOINT $e506
+ReadData:
+	RTS
+
+API_ENTRYPOINT $e5b5
+SaveData:
+	RTS
+
+API_ENTRYPOINT $e64d
+WaitForDriveReady:
+	RTS
+
+API_ENTRYPOINT $e685
+StopMotor:
+	RTS
+
+API_ENTRYPOINT $e68f
+CheckBlockType:
+	RTS
+
+API_ENTRYPOINT $e6b0
+WriteBlockType:
+	RTS
+
+API_ENTRYPOINT $e6e3
+StartXfer:
+	RTS
+
+API_ENTRYPOINT $e706
+EndOfBlockRead:
+	RTS
+
+API_ENTRYPOINT $e729
+EndOfBlkWrite:
 	RTS
 
 ; VRAM Buffers
@@ -345,6 +397,18 @@ API_ENTRYPOINT $e7bb
 VRAMStructWrite:
 	RTS
 
+API_ENTRYPOINT $e778
+XferDone:
+	RTS
+
+API_ENTRYPOINT $e794
+Xfer1stByte:
+	RTS
+
+API_ENTRYPOINT $e7a3
+XferByte:
+	RTS
+
 ; Fetch a direct pointer from the stack (the pointer should be placed after the
 ; return address of the routine that calls this one (see "important notes"
 ; above)), save the pointer at ($00) and fix the return address.
@@ -360,7 +424,7 @@ API_ENTRYPOINT $e86a
 WriteVRAMBuffer:
 	RTS
 
-; Read individual bytes from VRAM to the VRAMBuffer. 
+; Read individual bytes from VRAM to the VRAMBuffer.
 ; Affects A, X, Y
 ; X = start address of read buffer, Y = # of bytes to read
 API_ENTRYPOINT $e8b3
@@ -424,7 +488,7 @@ Nam2PixelConv:
 ; Parameters: X = Zero Page address where the random bytes are placed, Y = # of shift register bytes (normally $02)
 ; Affects: A, X, Y, $00
 API_ENTRYPOINT $e9b1
-Random:
+RandomNumberGen:
 	RTS
 
 ; Run Sprite DMA from RAM $200-$2FF
@@ -615,7 +679,7 @@ ReadKeyboard:
 
 ; This routine can read and write 2BP and 1BP tilesets to/from VRAM.
 ; The flags parameters are as follows:
-; 
+;
 ; 7  bit  0
 ; ---------
 ; AAAA MMIT
@@ -624,7 +688,7 @@ ReadKeyboard:
 ; |||| ||+-- Transfer direction (0 = Write tiles, 1 = Read tiles)
 ; |||| ++--- Bitplane type (see below)
 ; ++++------ Low VRAM Address (aka tile # within a row)
-; 
+;
 ;         1st bitplane	2nd bitplane     Description
 ;         -----------	-----------      -----------
 ;     0:  data           data+8           Normal 2-bitplane graphics
@@ -642,9 +706,17 @@ API_ENTRYPOINT $eb66
 LoadTileset:
 	RTS
 
+API_ENTRYPOINT $ebaf
+CPUtoPPUcopy:
+	RTS
+
 ; Some kind of logic that some games use. (detail is under analysis)
 API_ENTRYPOINT $ec22
 unk_EC22:
+	RTS
+
+API_ENTRYPOINT $ee17
+StartMotor:
 	RTS
 
 ;[$0102]/[$0103]: PC action on reset
@@ -664,7 +736,7 @@ unk_EC22:
 ; $E19D :         BIOS disable NMI           (if [$0100] = %00xxxxxx)
 
 NMI:
-	
+
 
 RESET:
 
