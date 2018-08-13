@@ -55,10 +55,10 @@ Modern hardware clones of the FDS RAM Adapter or FPGA re-implementations of the 
 | $e6e3 | StartXfer | | |
 | $e706 | EndOfBlockRead | | |
 | $e729 | EndOfBlkWrite | | |
-| $e7bb | VRAMStructWrite | | |
 | $e778 | XferDone | | |
 | $e794 | Xfer1stByte | | |
 | $e7a3 | XferByte | | |
+| $e7bb | VRAMStructWrite | | |
 | $e844 | FetchDirectPtr | | |
 | $e86a | WriteVRAMBuffer | | |
 | $e8b3 | ReadVRAMBuffer | | |

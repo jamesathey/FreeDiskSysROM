@@ -341,6 +341,18 @@ API_ENTRYPOINT $e729
 EndOfBlkWrite:
 	RTS
 
+API_ENTRYPOINT $e778
+XferDone:
+	RTS
+
+API_ENTRYPOINT $e794
+Xfer1stByte:
+	RTS
+
+API_ENTRYPOINT $e7a3
+XferByte:
+	RTS
+
 ; VRAM Buffers
 ;  The structure of VRAM buffers are as follows:
 ;
@@ -395,18 +407,6 @@ EndOfBlkWrite:
 ; Parameters: Pointer to VRAM buffer to be written
 API_ENTRYPOINT $e7bb
 VRAMStructWrite:
-	RTS
-
-API_ENTRYPOINT $e778
-XferDone:
-	RTS
-
-API_ENTRYPOINT $e794
-Xfer1stByte:
-	RTS
-
-API_ENTRYPOINT $e7a3
-XferByte:
 	RTS
 
 ; Fetch a direct pointer from the stack (the pointer should be placed after the
