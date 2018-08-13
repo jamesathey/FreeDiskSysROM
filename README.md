@@ -18,15 +18,74 @@ Modern hardware clones of the FDS RAM Adapter or FPGA re-implementations of the 
 
 ## APIs
 
-### Disk I/O
-
-### Joypad Input
-
-### VRAM Routines
+| Address | Name | # of Games | Implemented |
+| ------- | ---- | ------- | ----------- |
+| $e149 | Delay132 | | :white_check_mark: |
+| $e153 | Delayms | | :white_check_mark: |
+| $e161 | DisPFObj | | :white_check_mark: |
+| $e16b | EnPFObj | | :white_check_mark: |
+| $e171 | DisObj | | :white_check_mark: |
+| $e178 | EnObj | | :white_check_mark: |
+| $e17e | DisPF | | :white_check_mark: |
+| $e185 | EnPF | | :white_check_mark: |
+| $e1b2 | VINTWait | | |
+| $e1f8 | LoadFiles | | |
+| $e237 | AppendFile | | |
+| $e239 | WriteFile | | |
+| $e2b7 | CheckFileCount | | |
+| $e2bb | AdjustFileCount | | |
+| $e301 | SetFileCount1 | | |
+| $e305 | SetFileCount | | |
+| $e32a | GetDiskInfo | | |
+| $e3da | AddYtoPtr0A | | |
+| $e3e7 | GetHCPwNWPchk | | |
+| $e3ea | GetHCPwWPchk | | |
+| $e445 | CheckDiskHeader | | |
+| $e484 | GetNumFiles | | |
+| $e492 | SetNumFiles | | |
+| $e4a0 | FileMatchTest | 0 | |
+| $e4da | SkipFiles | 0 | |
+| $e4f9 | LoadData | | |
+| $e506 | ReadData | | |
+| $e5b5 | SaveData | | |
+| $e64d | WaitForDriveReady | | |
+| $e685 | StopMotor | | |
+| $e68f | CheckBlockType | | |
+| $e6b0 | WriteBlockType | | |
+| $e6e3 | StartXfer | | |
+| $e706 | EndOfBlockRead | | |
+| $e729 | EndOfBlkWrite | | |
+| $e7bb | VRAMStructWrite | | |
+| $e778 | XferDone | | |
+| $e794 | Xfer1stByte | | |
+| $e7a3 | XferByte | | |
+| $e844 | FetchDirectPtr | | |
+| $e86a | WriteVRAMBuffer | | |
+| $e8b3 | ReadVRAMBuffer | | |
+| $e8d2 | PrepareVRAMString | | |
+| $e8e1 | PrepareVRAMStrings | | |
+| $e94f | GetVRAMBufferByte | | |
+| $e97d | Pixel2NamConv | | |
+| $e997 | Nam2PixelConv | | |
+| $e9c8 | SpriteDMA | | :white_check_mark: |
+| $e9d3 | CounterLogic | | :white_check_mark: |
+| $e9eb | ReadPads | | :white_check_mark: |
+| $ea1a | ReadDownPads | | :white_check_mark: |
+| $ea1f | ReadOrDownPads | | |
+| $ea36 | ReadDownVerifyPads | | |
+| $ea4c | ReadOrDownVerifyPads | | |
+| $ea68 | ReadDownExpPads | | |
+| $ea84 | VRAMFill | | |
+| $ead2 | MemFill | | |
+| $eaea | SetScroll | | |
+| $eafd | JumpEngine | | |
+| $eb13 | ReadKeyboard | 0 | |
+| $eb66 | LoadTileset | | |
+| $ebaf | CPUtoPPUcopy | | |
+| $ec22 | unk_EC22 | | |
+| $ee17 | StartMotor | | |
 
 ## Initialization
-
-## Extras
 
 # Contributing
 
