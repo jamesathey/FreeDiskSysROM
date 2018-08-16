@@ -714,6 +714,13 @@ MemFill:
 ; Affects: A
 API_ENTRYPOINT $eaea
 SetScroll:
+	LDA PPUSTATUS ; reset PPU's "w" register to 0
+	LDA ZP_PPUSCROLL1
+	STA PPUSCROLL
+	LDA ZP_PPUSCROLL2
+	STA PPUSCROLL
+	LDA ZP_PPUCTRL
+	STA PPUCTRL
 	RTS
 
 ; The instruction calling this is supposed to be followed by a jump table
