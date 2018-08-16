@@ -69,12 +69,12 @@ Modern hardware clones of the FDS RAM Adapter or FPGA re-implementations of the 
 | $e997 | Nam2PixelConv | | |
 | $e9c8 | SpriteDMA | | :white_check_mark: |
 | $e9d3 | CounterLogic | | :white_check_mark: |
-| $e9eb | ReadPads | | |
-| $ea1a | ReadDownPads | | |
-| $ea1f | ReadOrDownPads | | |
-| $ea36 | ReadDownVerifyPads | | |
-| $ea4c | ReadOrDownVerifyPads | | |
-| $ea68 | ReadDownExpPads | | |
+| $e9eb | ReadPads | | :white_check_mark: |
+| $ea1a | ReadDownPads | | :white_check_mark: |
+| $ea1f | ReadOrDownPads | | :white_check_mark: |
+| $ea36 | ReadDownVerifyPads | | :white_check_mark: |
+| $ea4c | ReadOrDownVerifyPads | | :white_check_mark: |
+| $ea68 | ReadDownExpPads | | :white_check_mark: |
 | $ea84 | VRAMFill | | |
 | $ead2 | MemFill | | |
 | $eaea | SetScroll | | |
