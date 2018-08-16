@@ -692,6 +692,20 @@ VRAMFill:
 ; Affects: A, X, Y, $00, $01
 API_ENTRYPOINT $ead2
 MemFill:
+	; Start from the high end and count down
+	; The address of the start of the last page is just the Y register in the high byte of the pointer and 0 in the low byte
+	STY $01
+@outerloop:
+	LDY #0
+	STY $00
+@loop:
+	STA ($00),Y
+	INY
+	BNE @loop
+	DEC $01 ; work on the next page down
+	CPX $01
+	BMI @outerloop ; cover the X < $01 case
+	BEQ @outerloop ; cover the X == $01 case
 	RTS
 
 ; This routine set scroll registers according to values in $fc, $fd and $ff.
