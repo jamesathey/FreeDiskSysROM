@@ -771,6 +771,8 @@ CPUtoPPUcopy:
 	RTS
 
 ; Some kind of logic that some games use. (detail is under analysis)
+; Parameters: $00-$01 Pointer to structure... ?
+; Affects: A, X, Y, $02, $03, $04, $05, $06, $07, $08, $09
 API_ENTRYPOINT $ec22
 unk_EC22:
 	RTS
