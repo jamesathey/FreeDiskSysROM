@@ -33,6 +33,13 @@ PPUADDR		EQU $2006
 PPUDATA		EQU $2007
 OAMDMA		EQU $4014
 
+; undocumented instructions not explicitly supported by asm6f
+; TOP (abs)
+MACRO TOP address
+	DB $0C
+	DW #address
+ENDM
+
 ; Input registers
 JOYPAD1 EQU $4016
 JOYPAD2 EQU $4017
@@ -419,15 +426,7 @@ CounterLogic:
 
 INCLUDE gamepads.asm
 
-; memset for VRAM.
-; If A < $20, it fills pattern table data with the value in X for 16 * Y tiles.
-; If A >= $20, it fills the corresponding nametable with the value in X and
-; attribute table with the value in Y.
-; Parameters: A = High VRAM Address (aka tile row #), X = Fill value, Y = # of tile rows OR attribute fill data
-; Affects: A, X, Y, $00, $01, $02
-API_ENTRYPOINT $ea84
-VRAMFill:
-	RTS
+INCLUDE vramfill.asm
 
 ; Fill RAM pages with specified value.
 ; Parameters: A = fill value, X = first page #, Y = last page #
