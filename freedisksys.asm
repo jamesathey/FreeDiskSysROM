@@ -363,23 +363,7 @@ API_ENTRYPOINT $e94f
 GetVRAMBufferByte:
 	RTS
 
-; Convert pixel screen coordinates to corresponding nametable address (assumes
-; no scrolling, and points to first nametable at $2000-$23ff).
-; Parameters: $02 = Pixel X cord, $03 = Pixel Y cord
-; Returns: $00 = High nametable address, $01 = Low nametable address
-; Affects: A
-API_ENTRYPOINT $e97d
-Pixel2NamConv:
-	RTS
-
-; Convert a nametable address to corresponding pixel coordinates (assume no
-; scrolling).
-; Parameters: $00 = High nametable address, $01 = low nametable address
-; Returns: $02 = Pixel X cord, $03 = Pixel Y cord
-; Affects: A
-API_ENTRYPOINT $e997
-Nam2PixelConv:
-	RTS
+INCLUDE nametable.asm
 
 ; Shift-register based random number generator, normally takes 2 bytes (using
 ; more won't affect random sequence). On reset the program is supposed to

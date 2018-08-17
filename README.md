@@ -65,8 +65,8 @@ Modern hardware clones of the FDS RAM Adapter or FPGA re-implementations of the 
 | $e8d2 | PrepareVRAMString | | |
 | $e8e1 | PrepareVRAMStrings | | |
 | $e94f | GetVRAMBufferByte | | |
-| $e97d | Pixel2NamConv | | |
-| $e997 | Nam2PixelConv | | |
+| $e97d | Pixel2NamConv | | :white_check_mark: |
+| $e997 | Nam2PixelConv | | :white_check_mark: |
 | $e9c8 | SpriteDMA | | :white_check_mark: |
 | $e9d3 | CounterLogic | | :white_check_mark: |
 | $e9eb | ReadPads | | :white_check_mark: |
