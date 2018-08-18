@@ -20,7 +20,7 @@ Modern hardware clones of the FDS RAM Adapter or FPGA re-implementations of the 
 
 | Address | Name | # of Games | Implemented |
 | ------- | ---- | ------- | ----------- |
-| $e149 | Delay132 | | :white_check_mark: |
+| $e149 | Delay131 | | :white_check_mark: |
 | $e153 | Delayms | | :white_check_mark: |
 | $e161 | DisPFObj | | :white_check_mark: |
 | $e16b | EnPFObj | | :white_check_mark: |
