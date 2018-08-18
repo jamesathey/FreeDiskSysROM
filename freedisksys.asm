@@ -371,17 +371,7 @@ GetVRAMBufferByte:
 	RTS
 
 INCLUDE nametable.asm
-
-; Shift-register based random number generator, normally takes 2 bytes (using
-; more won't affect random sequence). On reset the program is supposed to
-; write some non-zero values here (BIOS uses writes $d0, $d0), and call this
-; routine several times before the data is actually random. Each call of this
-; routine will shift the bytes right.
-; Parameters: X = Zero Page address where the random bytes are placed, Y = # of shift register bytes (normally $02)
-; Affects: A, X, Y, $00
-API_ENTRYPOINT $e9b1
-RandomNumberGen:
-	RTS
+INCLUDE random.asm
 
 ; Run Sprite DMA from RAM $200-$2FF
 ; Affects: A

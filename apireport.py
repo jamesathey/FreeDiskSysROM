@@ -57,7 +57,7 @@ apis = {
     0xe94f: ['GetVRAMBufferByte', 0],
     0xe97d: ['Pixel2NamConv', 0],
     0xe997: ['Nam2PixelConv', 0],
-    0xe9b1: ['RandomNumberGen', 0],
+    0xe9b1: ['Random', 0],
     0xe9c8: ['SpriteDMA', 0],
     0xe9d3: ['CounterLogic', 0],
     0xe9eb: ['ReadPads', 0],
