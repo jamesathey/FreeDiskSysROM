@@ -429,7 +429,24 @@ SetScroll:
 ; Affects: A, X, Y, $00, $01
 API_ENTRYPOINT $eafd
 JumpEngine:
-	RTS
+	; the address on the stack is 1 less than the address of the table
+	SEC ; to rotate a 1 into the LSB, set the carry
+	ROL A ; Each entry is 2 bytes, so multiply A by two
+	TAY	; now A is freed up
+; get the address of the jump table
+	PLA ; low byte of the jump table address
+	STA $00
+	PLA ; high byte of the jump table address
+	STA $01
+; post-indexed indirect load of the entry in the jump table
+	LDA ($00),Y
+	TAX
+	INY
+	LDA ($00),Y
+	STX $00
+	STA $01
+; (indirect) jump!
+	JMP ($00)
 
 ; Read Family Basic Keyboard expansion
 API_ENTRYPOINT $eb13

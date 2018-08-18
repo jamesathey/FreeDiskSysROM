@@ -79,7 +79,7 @@ Modern hardware clones of the FDS RAM Adapter or FPGA re-implementations of the 
 | $ea84 | VRAMFill | | :white_check_mark: |
 | $ead2 | MemFill | | :white_check_mark: |
 | $eaea | SetScroll | | :white_check_mark: |
-| $eafd | JumpEngine | | |
+| $eafd | JumpEngine | | :white_check_mark: |
 | $eb13 | ReadKeyboard | 0 | |
 | $eb66 | LoadTileset | | |
 | $ebaf | CPUtoPPUcopy | | |
