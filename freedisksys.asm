@@ -429,10 +429,10 @@ SetScroll:
 ; Affects: A, X, Y, $00, $01
 API_ENTRYPOINT $eafd
 JumpEngine:
-	; the address on the stack is 1 less than the address of the table
-	SEC ; to rotate a 1 into the LSB, set the carry
-	ROL A ; Each entry is 2 bytes, so multiply A by two
-	TAY	; now A is freed up
+	; the top of the stack is 1 less than the address of the table
+	SEC   ; to rotate a 1 into the LSB, set the carry
+	ROL A ; Each entry is 2 bytes, so multiply A by two to get the offset
+	TAY   ; now A is freed up and Y has the offset, which will be useful later
 ; get the address of the jump table
 	PLA ; low byte of the jump table address
 	STA $00
