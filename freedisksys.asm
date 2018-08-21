@@ -325,10 +325,62 @@ API_ENTRYPOINT $e844
 FetchDirectPtr:
 	RTS
 
-; Write the VRAM Buffer at $302 to VRAM.
-; Affects: A, X, Y, $301, $302
+; Write buffers from the VRAM Write Buffer, starting at $302, to VRAM. Each
+; buffer is described and preceded by a 3 byte header.
+; The first two bytes specify the destination VRAM address.
+; - To mark the end of the list of buffers, put a value >= $80 instead in the
+;   first byte.
+; - The original version checks if each structure's address STARTS in the
+;   palette (addr >= $3F00), then it sets PPUADDR to $3F00 followed by $0000
+;   after copying that structure. It appears to be an attempt to prevent the
+;   PPU from drawing the colors of the palette to the screen, AKA, the
+;   "background palette hack," which occurs whenever rendering is off and the
+;   PPUADDR is somewhere in the palette. (FWIW, rendering is likely to be off
+;   when this function is called.)
+;   To reliably prevent the palette from being drawn to the screen, what this
+;   implementation does instead is to check whether the address of just the
+;   last structure PLUS its length is in the $3F00-$3FFF area (or the mirror at
+;   $7F00-$7FFF).
+; The third byte contains the length of the buffer.
+; - There's no check for 0-length buffers. Specifying a length of 0 will cause
+;   a buffer overflow.
+; Before returning, the write buffer is cleared (0 written to $301, $80 written
+; to $302.)
+; Affects: A, X, Y, $00, $01, $02, $301, $302
 API_ENTRYPOINT $e86a
-WriteVRAMBuffer:
+WriteVRAMBuffers:
+	LDA ZP_PPUCTRL
+	AND #%11111011 ; Address increment of 1
+	STA PPUCTRL
+	STA ZP_PPUCTRL
+	LDA PPUSTATUS ; clear PPUADDR latch
+	LDY #0 ; Start at the beginning of $302
+@structure:
+	LDA $302,Y  ; load high byte of destination PPU Address
+	BMI @done   ; an "opcode" of $80 or more marks the end of the list
+	STA $01     ; save the address (little endian) so we can check later for PPUADDR in the palette
+	STA PPUADDR ; set the high byte of the initial address 
+	INY
+	LDA $302,Y  ; load low byte of destination PPU address
+	STA $00     ; save the low byte of the address (little endian)
+	STA PPUADDR ; set the low byte of the initial address
+	INY
+	LDX $302,Y  ; load buffer length from third byte
+	STX $02     ; save the length so we can check later for PPUADDR in the palette
+	INY
+@loop:
+	LDA $302,Y
+	STA PPUDATA
+	INY
+	DEX
+	BNE @loop
+	BEQ @structure ; this structure is done, so move onto the next one
+@done:
+	STA $302 ; write the $80 "opcode" to the first structure's address to clear the list
+	LDA #0   ; clear the write buffer, i.e., move the read buffer to the beginning
+	STA $301
+	; Finally, clear PPUADDR if it's currently in the palette
+	JSR PreventPalettePpuAddr
 	RTS
 
 ; Read individual bytes from VRAM to the VRAMBuffer.
@@ -495,6 +547,29 @@ unk_EC22:
 
 API_ENTRYPOINT $ee17
 StartMotor:
+	RTS
+
+; private functions
+
+; Checks whether the little-endian address provided in ($00) plus the offset in
+; $02 is in the range $3Fxx (or one of its mirrors). If so, the PPUADDR is
+; reset to $0000. Assumes that the PPUADDR latch is currently clear.
+; Parameters: $00-$01 = PPU address, $02 = offset
+; Affects: A 
+PreventPalettePpuAddr:
+	CLC
+	LDA $00
+	ADC $02  ; add length to low address byte
+	LDA #0
+	ADC $01  ; add C to high address byte and nothing else
+	AND #$3F ; we might be in the mirror $7Fxx range instead of $3Fxx
+	CMP #$3F ; now check for exactly $3F
+	BNE @done
+	; get PPUADDR out of the palette area
+	LDA #0
+	STA PPUADDR
+	STA PPUADDR
+@done:
 	RTS
 
 ;[$0102]/[$0103]: PC action on reset
