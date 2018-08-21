@@ -61,7 +61,7 @@ Modern hardware clones of the FDS RAM Adapter or FPGA re-implementations of the 
 | $e7bb | VRAMStructWrite | | |
 | $e844 | FetchDirectPtr | | |
 | $e86a | WriteVRAMBuffers | | :white_check_mark: |
-| $e8b3 | ReadVRAMBuffer | | |
+| $e8b3 | ReadIndividualVRAMBytes | | :white_check_mark: |
 | $e8d2 | PrepareVRAMString | | |
 | $e8e1 | PrepareVRAMStrings | | |
 | $e94f | GetVRAMBufferByte | | |

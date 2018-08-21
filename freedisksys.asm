@@ -383,11 +383,29 @@ WriteVRAMBuffers:
 	JSR PreventPalettePpuAddr
 	RTS
 
-; Read individual bytes from VRAM to the VRAMBuffer.
+; Read individual bytes from VRAM to the VRAMBuffer. Each byte in the buffer is
+; preceded by the source address - (1|32) in VRAM; in other words, it takes 3
+; bytes of space in the VRAM Buffer for every byte to read, and the byte
+; written to the buffer comes from 1 byte or 32 bytes LATER than the specified
+; address, as this function does NOT change the address increment mode.
 ; Affects A, X, Y
-; X = start address of read buffer, Y = # of bytes to read
+; Parameters: X = start address of read buffer, Y = # of bytes to read
 API_ENTRYPOINT $e8b3
-ReadVRAMBuffer:
+ReadIndividualVRAMBytes:
+	LDA PPUSTATUS ; clear PPUADDR latch
+@loop:
+	LDA $300,X    ; high address byte
+	STA PPUADDR
+	INX
+	LDA $300,X    ; load low address byte
+	STA PPUADDR
+	INX
+	LDA PPUDATA   ; read (and throw away) buffered byte from VRAM
+	LDA PPUDATA   ; read buffered byte from VRAM
+	STA $300,X
+	INX
+	DEY
+	BNE @loop
 	RTS
 
 ; Copy pointed data into the VRAM buffer.
