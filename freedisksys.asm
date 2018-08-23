@@ -272,7 +272,7 @@ XferByte:
 ; .....  repeated as many times as needed
 ; 1      $ff
 ;
-; * The main structure is terminated by a $ff byte (High address is always
+; * The main structure is terminated by a byte >= $80 (High address is always
 ;   supposed to be in $00..$3f range)
 ; * $4c is a "call" command. The 2 bytes that follow is the address of a sub-
 ;   VRAM structure. The sub-structure can call another sub-structure and so on.
@@ -291,7 +291,7 @@ XferByte:
 ; * Format of the buffer is equivalent to the VRAM structure above, except that
 ;   there are no sub-structures, no increment by 32 flag and no fill flag.
 ; * For this reason, the VRAM buffer at $302 can be used as a sub-structure.
-; * A call to WriteVRAMBuffer will execute faster than a call to
+; * A call to WriteVRAMBuffers will execute faster than a call to
 ;   VRAMStructWrite with $302 as an argument, but both will have the same
 ;   effect.
 ;
@@ -308,13 +308,7 @@ XferByte:
 ; back after a modification, the user need to copy it to the write buffer
 ; manually.
 
-; Set VRAM increment to 1 (clear PPUCTRL/$ff bit 2), and write a VRAM buffer to
-; VRAM.
-; Affects: A, X, Y, $00, $01, $ff
-; Parameters: Pointer to VRAM buffer to be written
-API_ENTRYPOINT $e7bb
-VRAMStructWrite:
-	RTS
+INCLUDE vramstructwrite.asm
 
 ; Fetch a direct pointer located at the apparent return address of the routine
 ; that calls this one, save the pointer at ($00), and fix the return address.
@@ -367,7 +361,7 @@ FetchDirectPtr:
 ;   a buffer overflow.
 ; Before returning, the write buffer is cleared (0 written to $301, $80 written
 ; to $302.)
-; Affects: A, X, Y, $00, $01, $02, $301, $302
+; Affects: A, X, Y, $02, $03, $04, $301, $302
 API_ENTRYPOINT $e86a
 WriteVRAMBuffers:
 	LDA ZP_PPUCTRL
@@ -379,15 +373,15 @@ WriteVRAMBuffers:
 @structure:
 	LDA $302,Y  ; load high byte of destination PPU Address
 	BMI @done   ; an "opcode" of $80 or more marks the end of the list
-	STA $01     ; save the address (little endian) so we can check later for PPUADDR in the palette
+	STA $03     ; save the address (little endian) so we can check later for PPUADDR in the palette
 	STA PPUADDR ; set the high byte of the initial address 
 	INY
 	LDA $302,Y  ; load low byte of destination PPU address
-	STA $00     ; save the low byte of the address (little endian)
+	STA $02     ; save the low byte of the address (little endian)
 	STA PPUADDR ; set the low byte of the initial address
 	INY
 	LDX $302,Y  ; load buffer length from third byte
-	STX $02     ; save the length so we can check later for PPUADDR in the palette
+	STX $04     ; save the length so we can check later for PPUADDR in the palette
 	INY
 @loop:
 	LDA $302,Y
@@ -590,17 +584,17 @@ StartMotor:
 
 ; private functions
 
-; Checks whether the little-endian address provided in ($00) plus the offset in
-; $02 is in the range $3Fxx (or one of its mirrors). If so, the PPUADDR is
+; Checks whether the little-endian address provided in ($02) plus the offset in
+; $04 is in the range $3Fxx (or one of its mirrors). If so, the PPUADDR is
 ; reset to $0000. Assumes that the PPUADDR latch is currently clear.
 ; Parameters: $00-$01 = PPU address, $02 = offset
 ; Affects: A 
 PreventPalettePpuAddr:
 	CLC
-	LDA $00
+	LDA $04
 	ADC $02  ; add length to low address byte
 	LDA #0
-	ADC $01  ; add C to high address byte and nothing else
+	ADC $03  ; add C to high address byte and nothing else
 	AND #$3F ; we might be in the mirror $7Fxx range instead of $3Fxx
 	CMP #$3F ; now check for exactly $3F
 	BNE @done
