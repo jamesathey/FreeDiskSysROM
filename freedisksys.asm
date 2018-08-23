@@ -22,6 +22,16 @@ ZP_PPUSCROLL2	EQU $FC; value last written to $2005/2 $00 on reset.
 ; [$FA]:  value last written to $4025   $2E on reset.
 ; [$F9]:  value last written to $4026   $FF on reset.
 
+; Bits 6 and 7 of IRQ_ACTION determine the behavior of IRQs.
+; ($DFFE):         disk game IRQ vector       (if [$0101] = %11xxxxxx)
+;  $E1EF :         BIOS acknowledge and delay (if [$0101] = %10xxxxxx)
+;  $E1CE :         BIOS disk transfer         (if [$0101] = %01xxxxxx)
+;  $E1D9 :         BIOS disk skip bytes       (if [$0101] = %00xxxxxx)
+; Set to $80 on reset, aka BIOS acknowledge and delay.
+IRQ_ACTION	EQU $0101
+
+; [$0102]/[$0103]: PC action on reset
+
 ; PPU registers
 PPUCTRL		EQU $2000
 PPUMASK		EQU $2001
@@ -83,14 +93,7 @@ ORG $E000
 
 INCLUDE delay.asm
 INCLUDE ppumask.asm
-
-; Wait until next VBlank NMI fires, and return (for programs that do it the
-; "everything in main" way). NMI vector selection at $100 is saved to the
-; stack, but further VBlanks are disabled. Affects $FF
-API_ENTRYPOINT $e1b2
-; 70 bytes to work with
-VINTWait:
-	RTS
+INCLUDE nmi.asm
 
 ; Loads files specified by DiskID into memory from disk. Load addresses are
 ; decided by the file's header.
@@ -607,7 +610,6 @@ PreventPalettePpuAddr:
 
 ;[$0102]/[$0103]: PC action on reset
 ;[$0101]:         PC action on IRQ. set to $80 on reset
-;[$0100]:         PC action on NMI. set to $C0 on reset
 ;RESET:
 ;($DFFC):         disk game reset vector     (if [$0102] = $35, and [$0103] = $53 or $AC)
 ;IRQ:
@@ -615,23 +617,14 @@ PreventPalettePpuAddr:
 ; $E1EF :         BIOS acknowledge and delay (if [$0101] = %10xxxxxx)
 ; $E1CE :         BIOS disk transfer         (if [$0101] = %01xxxxxx)
 ; $E1D9 :         BIOS disk skip bytes       (if [$0101] = %00xxxxxx)
-;NMI:
-;($DFFA):         disk game NMI vector #3    (if [$0100] = %11xxxxxx)
-;($DFF8):         disk game NMI vector #2    (if [$0100] = %10xxxxxx)
-;($DFF6):         disk game NMI vector #1    (if [$0100] = %01xxxxxx)
-; $E19D :         BIOS disable NMI           (if [$0100] = %00xxxxxx)
-
-NMI:
-
 
 RESET:
 
 IRQ:
 	JMP ($DFFE) ; game's IRQ vector
 
+; the hard-coded interrupt vectors at the end of ROM
 API_ENTRYPOINT $fffa
-NMI_VEC:
-
-RESET_VEC:
-
-IRQ_VEC:
+	DW NMI
+	DW RESET
+	DW IRQ
