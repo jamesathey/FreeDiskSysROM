@@ -627,12 +627,7 @@ PreventPalettePpuAddr:
 @done:
 	RTS
 
-;[$0102]/[$0103]: PC action on reset
-;[$0101]:         PC action on IRQ. set to $80 on reset
-;RESET:
-;($DFFC):         disk game reset vector     (if [$0102] = $35, and [$0103] = $53 or $AC)
-
-RESET:
+INCLUDE reset.asm
 
 ; the hard-coded interrupt vectors at the end of ROM
 API_ENTRYPOINT $fffa
