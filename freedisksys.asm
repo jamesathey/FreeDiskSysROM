@@ -18,17 +18,9 @@ ZP_PPUCTRL		EQU $FF; value last written to $2000   $80 on reset.
 ZP_PPUMASK		EQU $FE; value last written to $2001   $06 on reset
 ZP_PPUSCROLL1	EQU $FD; value last written to $2005/1 $00 on reset.
 ZP_PPUSCROLL2	EQU $FC; value last written to $2005/2 $00 on reset.
-; [$FB]:  value last written to $4016   $00 on reset.
-; [$FA]:  value last written to $4025   $2E on reset.
-; [$F9]:  value last written to $4026   $FF on reset.
-
-; Bits 6 and 7 of IRQ_ACTION determine the behavior of IRQs.
-; ($DFFE):         disk game IRQ vector       (if [$0101] = %11xxxxxx)
-;  $E1EF :         BIOS acknowledge and delay (if [$0101] = %10xxxxxx)
-;  $E1CE :         BIOS disk transfer         (if [$0101] = %01xxxxxx)
-;  $E1D9 :         BIOS disk skip bytes       (if [$0101] = %00xxxxxx)
-; Set to $80 on reset, aka BIOS acknowledge and delay.
-IRQ_ACTION	EQU $0101
+ZP_JOYPAD1		EQU $FB; value last written to $4016   $00 on reset.
+ZP_FDSCTRL		EQU $FA; value last written to $4025 $2E on reset.
+ZP_EXTCONN		EQU $F9; value last written to $4026 $FF on reset.
 
 ; [$0102]/[$0103]: PC action on reset
 
@@ -53,6 +45,19 @@ ENDM
 ; Input registers
 JOYPAD1 EQU $4016
 JOYPAD2 EQU $4017
+
+; FDS registers
+IRQLOW		EQU $4020
+IRQHIGH		EQU $4021
+IRQCTRL		EQU $4022
+MASTERIO	EQU $4023
+WRITEDATA	EQU $4024
+ZP_FDSCTRL	EQU $4025
+EXTCONNWR	EQU $4026
+DISKSTATUS	EQU $4030
+READDATA	EQU $4031
+DRIVESTATUS	EQU $4032
+EXTCONNRD	EQU $4033
 
 ; Error codes:
 OK EQU $00 ; no error
@@ -255,10 +260,24 @@ API_ENTRYPOINT $e778
 XferDone:
 	RTS
 
+; Waits for the first byte to be transferred between the drive and RAM adapter.
+; Does not know or care whether it's a read or write. An interrupt is involved,
+; but the stack is manipulated in the ISR such that control returns to the
+; caller of this function as if it were a simple subroutine.
+; Parameters: A = byte to write to disk (if this is a write)
+; Affects: X, $101, $FA
+; Returns: A = byte read from disk (if this is a read)
 API_ENTRYPOINT $e794
 Xfer1stByte:
 	RTS
 
+; Waits for a byte to be transferred between the drive and the RAM adapter.
+; Does not know or care whether it's a read or write. An interrupt is involved,
+; but the stack is manipulated in the ISR such that control returns to the
+; caller of this function as if it were a simple subroutine.
+; Parameters: A = byte to write to disk (if this is a write)
+; Affects: X
+; Returns: A = byte read from disk (if this is a read)
 API_ENTRYPOINT $e7a3
 XferByte:
 	RTS
@@ -377,7 +396,7 @@ WriteVRAMBuffers:
 	LDA $302,Y  ; load high byte of destination PPU Address
 	BMI @done   ; an "opcode" of $80 or more marks the end of the list
 	STA $03     ; save the address (little endian) so we can check later for PPUADDR in the palette
-	STA PPUADDR ; set the high byte of the initial address 
+	STA PPUADDR ; set the high byte of the initial address
 	INY
 	LDA $302,Y  ; load low byte of destination PPU address
 	STA $02     ; save the low byte of the address (little endian)
@@ -591,7 +610,7 @@ StartMotor:
 ; $04 is in the range $3Fxx (or one of its mirrors). If so, the PPUADDR is
 ; reset to $0000. Assumes that the PPUADDR latch is currently clear.
 ; Parameters: $00-$01 = PPU address, $02 = offset
-; Affects: A 
+; Affects: A
 PreventPalettePpuAddr:
 	CLC
 	LDA $04
@@ -612,16 +631,8 @@ PreventPalettePpuAddr:
 ;[$0101]:         PC action on IRQ. set to $80 on reset
 ;RESET:
 ;($DFFC):         disk game reset vector     (if [$0102] = $35, and [$0103] = $53 or $AC)
-;IRQ:
-;($DFFE):         disk game IRQ vector       (if [$0101] = %11xxxxxx)
-; $E1EF :         BIOS acknowledge and delay (if [$0101] = %10xxxxxx)
-; $E1CE :         BIOS disk transfer         (if [$0101] = %01xxxxxx)
-; $E1D9 :         BIOS disk skip bytes       (if [$0101] = %00xxxxxx)
 
 RESET:
-
-IRQ:
-	JMP ($DFFE) ; game's IRQ vector
 
 ; the hard-coded interrupt vectors at the end of ROM
 API_ENTRYPOINT $fffa

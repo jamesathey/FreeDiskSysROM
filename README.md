@@ -30,6 +30,7 @@ Modern hardware clones of the FDS RAM Adapter or FPGA re-implementations of the 
 | $e185 | EnPF | | :white_check_mark: |
 | $e18b | NMI | | :white_check_mark: |
 | $e1b2 | VINTWait | | :white_check_mark: |
+| $e1c7 | IRQ | | :white_check_mark: |
 | $e1f8 | LoadFiles | | |
 | $e237 | AppendFile | | |
 | $e239 | WriteFile | | |

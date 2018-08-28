@@ -18,11 +18,10 @@
 ; Affects: A, X, $00, $01, $F5, $F6, $FB
 API_ENTRYPOINT $e9eb
 ReadPads:
-	; $FB contains "the last value written to $4016"
 	; If this is being called to also read expansion port pads, bit 1 of $FB
 	; will be 1, otherwise it will be 0. To strobe the controllers in either
 	; case, just set the 1s bit on the value in $FB, then clear it to read.
-	LDX $FB
+	LDX ZP_JOYPAD1
 	INX ; now X[0] is 1, assuming that no other function will set that bit to 1
 	; While the strobe bit is set, buttons will be continuously reloaded.
 	; This means that reading from JOYPAD1 will only return the state of the
