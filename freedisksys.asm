@@ -607,21 +607,42 @@ StartMotor:
 ; private functions
 
 ; Checks whether the little-endian address provided in ($02) plus the offset in
-; $04 is in the range $3Fxx (or one of its mirrors). If so, the PPUADDR is
-; reset to $0000. Assumes that the PPUADDR latch is currently clear.
+; $04 is in the range $3Fxx (or one of its mirrors). Checks the current PPU
+; increment mode to do the correct arithmetic. If the current PPU address is in
+; the palette, reset to $0000. Assumes that the PPUADDR latch is currently
+; clear.
 ; Parameters: $00-$01 = PPU address, $02 = offset
-; Affects: A
+; Affects: A, X, Y
 PreventPalettePpuAddr:
+	LDA #%00000100 ; increment mode flag bit test
+	AND ZP_PPUCTRL
+	BEQ @incr1
+	LDA $02 ; low address byte
+	LDY $03 ; high address byte
+	LDX $04 ; offset
+	BEQ @check ; if the offset is 0, jump straight to the check
+@incr32:
 	CLC
-	LDA $04
-	ADC $02  ; add length to low address byte
-	LDA #0
-	ADC $03  ; add C to high address byte and nothing else
+	ADC #32 ; for (X = $04; X != 0; X--) $02,$03 += 32;
+	BCC nextiter
+	INY
+@nextiter:
+	DEX
+	BNE @incr32
+	BEQ @check
+@incr1:
+	LDA $02  ; low address byte
+	LDY $03  ; high address byte
+	CLC
+	ADC $04  ; add length to low address byte
+	BCC @check
+	INY ; add C to high address byte
+@check:
+	TYA
 	AND #$3F ; we might be in the mirror $7Fxx range instead of $3Fxx
 	CMP #$3F ; now check for exactly $3F
 	BNE @done
-	; get PPUADDR out of the palette area
-	LDA #0
+	LDA #0 ; reset PPUADDR to 0 to get it out of the palette area
 	STA PPUADDR
 	STA PPUADDR
 @done:
