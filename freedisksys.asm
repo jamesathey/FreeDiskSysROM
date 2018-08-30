@@ -52,7 +52,7 @@ IRQHIGH		EQU $4021
 IRQCTRL		EQU $4022
 MASTERIO	EQU $4023
 WRITEDATA	EQU $4024
-ZP_FDSCTRL	EQU $4025
+FDSCTRL		EQU $4025
 EXTCONNWR	EQU $4026
 DISKSTATUS	EQU $4030
 READDATA	EQU $4031
@@ -99,6 +99,7 @@ ORG $E000
 INCLUDE delay.asm
 INCLUDE ppumask.asm
 INCLUDE nmi.asm
+INCLUDE irq.asm
 
 ; Loads files specified by DiskID into memory from disk. Load addresses are
 ; decided by the file's header.
@@ -624,7 +625,7 @@ PreventPalettePpuAddr:
 @incr32:
 	CLC
 	ADC #32 ; for (X = $04; X != 0; X--) $02,$03 += 32;
-	BCC nextiter
+	BCC @nextiter
 	INY
 @nextiter:
 	DEX
