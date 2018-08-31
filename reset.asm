@@ -68,3 +68,11 @@ RESET:
     LDA #$80
     STA ZP_PPUCTRL
     STA PPUCTRL
+
+    ; prepare the VRAM buffer
+    LDA #$7D ; initial write buffer found at $302-$37F
+    STA $300
+    LDA #0
+    STA $301
+    LDA #$80 ; "end" opcode for the write buffer
+    STA $302

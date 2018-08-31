@@ -64,8 +64,8 @@ Modern hardware clones of the FDS RAM Adapter or FPGA re-implementations of the 
 | $e844 | FetchDirectPtr | | :white_check_mark: |
 | $e86a | WriteVRAMBuffers | | :white_check_mark: |
 | $e8b3 | ReadIndividualVRAMBytes | | :white_check_mark: |
-| $e8d2 | PrepareVRAMString | | |
-| $e8e1 | PrepareVRAMStrings | | |
+| $e8d2 | PrepareVRAMString | | :white_check_mark: |
+| $e8e1 | PrepareVRAMStrings | | :white_check_mark: |
 | $e94f | GetVRAMBufferByte | | |
 | $e97d | Pixel2NamConv | | :white_check_mark: |
 | $e997 | Nam2PixelConv | | :white_check_mark: |
