@@ -83,8 +83,7 @@ Modern hardware clones of the FDS RAM Adapter or FPGA re-implementations of the 
 | $eaea | SetScroll | | :white_check_mark: |
 | $eafd | JumpEngine | | :white_check_mark: |
 | $eb13 | ReadKeyboard | 0 | |
-| $eb66 | LoadTileset | | |
-| $ebaf | CPUtoPPUcopy | | |
+| $ebaf | LoadTileset | | :white_check_mark: |
 | $ec22 | unk_EC22 | | |
 | $ee17 | StartMotor | | |
 

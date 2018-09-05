@@ -433,38 +433,7 @@ API_ENTRYPOINT $eb13
 ReadKeyboard:
 	RTS
 
-; This routine can read and write 2BP and 1BP tilesets to/from VRAM.
-; The flags parameters are as follows:
-;
-; 7  bit  0
-; ---------
-; AAAA MMIT
-; |||| ||||
-; |||| |||+- Fill bit
-; |||| ||+-- Transfer direction (0 = Write tiles, 1 = Read tiles)
-; |||| ++--- Bitplane type (see below)
-; ++++------ Low VRAM Address (aka tile # within a row)
-;
-;         1st bitplane	2nd bitplane     Description
-;         -----------	-----------      -----------
-;     0:  data           data+8           Normal 2-bitplane graphics
-;     1:  data           fill bit         Single bitplane graphics. Fill bit clear : Use colors 0&1  Fill bit set : Use colors 2&3
-;     2:  fill bit       data             Single bitplane graphics. Fill bit clear : Use colors 0&2  Fill bit set : Use colors 1&3
-;     3:  data^fill bit  data             Single bitplane graphics. Fill bit clear : Use colors 0&3  Fill bit set : Use colors 1&2
-; This makes it possible for single bitplane tiles to take all possible color
-; schemes when they end up in VRAM. However, it is not possible to (natively)
-; load single bitplane graphics directly from the disk into VRAM; it should be
-; loaded into PRG-RAM before transferring the data into VRAM. In read mode, all
-; non "data" bitplanes are replaced by dummy reads.
-; Parameters: A = Low VRAM Address & Flags, Y = Hi VRAM Address, X = # of tiles to transfer to/from VRAM
-; Affects: A, X, Y, $00, $01, $02, $03, $04
-API_ENTRYPOINT $eb66
-LoadTileset:
-	RTS
-
-API_ENTRYPOINT $ebaf
-CPUtoPPUcopy:
-	RTS
+INCLUDE loadtileset.asm
 
 ; Some kind of logic that some games use. (detail is under analysis)
 ; Parameters: $00-$01 Pointer to structure... ?
