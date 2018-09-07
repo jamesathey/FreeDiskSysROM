@@ -1,6 +1,6 @@
 # FreeDiskSysROM
 
-This project has one goal - a compatible re-implementation of the Famicom Disk System BIOS under an OSS license. Unlike the Famicom console itself, which has no program ROM built-in, the Famicom Disk System includes an 8 KiB PRG-ROM containing disk I/O routines, VRAM transfer routines, joypad reading code, and an animation featuring Mario and Luigi when no disk is present in the drive, and more. The code, data, graphics, music, and animation contained in the original BIOS are copyrighted by Nintendo.
+This project has one goal - a compatible re-implementation of the Famicom Disk System BIOS under an OSS license. Unlike the Famicom console itself, which has no program ROM built-in, the Famicom Disk System includes an 8 KiB PRG-ROM containing disk I/O routines, VRAM transfer routines, joypad reading code, an animation featuring Mario and Luigi when no disk is present in the drive, and more. The code, data, graphics, music, and animation contained in the original BIOS are copyrighted by Nintendo.
 
 FreeDiskSysROM aims to provide a replacement for the original FDS BIOS that can be freely redistributed and that is capable of running all published FDS software.
 
