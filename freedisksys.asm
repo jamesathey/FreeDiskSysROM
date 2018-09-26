@@ -335,20 +335,7 @@ INCLUDE vramstructwrite.asm
 INCLUDE fetchdirectptr.asm
 INCLUDE vrambuffers.asm
 INCLUDE vramstrings.asm
-
-; This routine was likely planned to be used in order to avoid useless latency
-; on VRAM reads (see notes below). It compares the VRAM address in ($00) with
-; the Yth (starting at 1) address of the read buffer. If both addresses match,
-; the corresponding data byte is returned exit with c clear. If the addresses
-; are different, the buffer address is overwritten by the address in ($00) and
-; the routine exit with c set.
-; Parameters: X = starting index of read buffer, Y = # of address to compare (starting at 1), $00, $01 = address to read from
-; Returns: carry clear : a previously read byte was returned, carry set : no byte was read, should wait next call to ReadVRAMBuffer
-; Affects: A, X, Y
-API_ENTRYPOINT $e94f
-GetVRAMBufferByte:
-	RTS
-
+INCLUDE getvrambufferbyte.asm
 INCLUDE nametable.asm
 INCLUDE random.asm
 
