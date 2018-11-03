@@ -172,13 +172,7 @@ API_ENTRYPOINT $e3da
 AddYtoPtr0A:
 	RTS
 
-API_ENTRYPOINT $e3e7
-GetHCPwNWPchk:
-	RTS
-
-API_ENTRYPOINT $e3ea
-GetHCPwWPchk:
-	RTS
+INCLUDE gethardcodedpointers.asm
 
 ; Compares the first 10 bytes on the disk coming after the FDS string, to 10
 ; bytes pointed to by Ptr($00). To bypass the checking of any byte, a -1 can be

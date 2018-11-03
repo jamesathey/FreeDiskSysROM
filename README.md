@@ -40,8 +40,8 @@ Modern hardware clones of the FDS RAM Adapter or FPGA re-implementations of the 
 | $e305 | SetFileCount | | |
 | $e32a | GetDiskInfo | | |
 | $e3da | AddYtoPtr0A | | |
-| $e3e7 | GetHCPwNWPchk | | |
-| $e3ea | GetHCPwWPchk | | |
+| $e3e7 | GetHardCodedPointers | | |
+| $e3ea | GetHardCodedPointersWriteProtected | | |
 | $e445 | CheckDiskHeader | | |
 | $e484 | GetNumFiles | | |
 | $e492 | SetNumFiles | | |
