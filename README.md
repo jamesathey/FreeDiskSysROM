@@ -89,6 +89,16 @@ Modern hardware clones of the FDS RAM Adapter or FPGA re-implementations of the 
 
 ## Initialization
 
+# Building
+
+To build, use [asm6f](https://github.com/SourMesen/asm6f).
+
+```asm6f freedisksys.asm```
+
+The `-l` flag is very useful for development - it shows the addresses assigned
+to each instruction, so you can easily see how much room remains for a given
+subroutine.
+
 # Contributing
 
 Rules:
