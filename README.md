@@ -91,7 +91,7 @@ Modern hardware clones of the FDS RAM Adapter or FPGA re-implementations of the 
 
 # Building
 
-To build, use [asm6f](https://github.com/SourMesen/asm6f).
+To build, use [asm6f](https://github.com/freem/asm6f).
 
 ```asm6f freedisksys.asm```
 
