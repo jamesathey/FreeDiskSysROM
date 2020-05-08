@@ -95,7 +95,9 @@ FILLVALUE $72
 
 ; Start assembling at the beginning of the FDS ROM area
 ORG $E000
+DB $00
 
+INCLUDE font.asm
 INCLUDE delay.asm
 INCLUDE ppumask.asm
 INCLUDE nmi.asm
